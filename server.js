@@ -19,9 +19,12 @@ const CSV_PATH = path.join(__dirname, 'data', 'submissions.csv');
 const LOGS_PATH = path.join(__dirname, 'data', 'notification_logs.txt');
 const EMAILS_CONFIG_PATH = path.join(__dirname, 'config', 'notification_emails.json');
 
-// Ensure directory structure
-if (!fs.existsSync(path.join(__dirname, 'data'))) {
-  fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+// Ensure directory structure (only if not running on Vercel)
+const IS_VERCEL = !!process.env.VERCEL;
+if (!IS_VERCEL) {
+  if (!fs.existsSync(path.join(__dirname, 'data'))) {
+    fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+  }
 }
 
 // Helper to escape fields for CSV format
@@ -73,8 +76,9 @@ function isValidEmail(email) {
   return emailRegex.test(email);
 }
 
-// Initialize CSV file with headers if it doesn't exist
+// Initialize CSV file with headers if it doesn't exist (skip on Vercel)
 function initCsv() {
+  if (IS_VERCEL) return;
   if (!fs.existsSync(CSV_PATH)) {
     const headers = [
       'Submission ID',
@@ -150,7 +154,31 @@ app.post('/api/submit', (req, res) => {
   ].map(escapeCsv).join(',') + '\n';
 
   try {
-    fs.appendFileSync(CSV_PATH, row, 'utf8');
+    if (!IS_VERCEL) {
+      fs.appendFileSync(CSV_PATH, row, 'utf8');
+    }
+
+    // If Google Sheets webhook is configured, send the data
+    const webhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
+    if (webhookUrl) {
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'submit',
+          submissionId,
+          name: name.trim(),
+          position: position.trim(),
+          company: company.trim(),
+          email: email.trim(),
+          team,
+          hardestPart,
+          hiresCount,
+          timeline
+        })
+      }).catch(err => console.error('Failed to send to Google Sheets webhook:', err));
+    }
+
     return res.json({ success: true, submissionId });
   } catch (err) {
     console.error('Error writing to CSV:', err);
@@ -160,60 +188,99 @@ app.post('/api/submit', (req, res) => {
 
 // POST /api/book-slot: Binds the booking slot details and sends notification emails
 app.post('/api/book-slot', async (req, res) => {
-  const { submissionId, date, time } = req.body;
+  const { 
+    submissionId, 
+    date, 
+    time,
+    name,
+    position,
+    company,
+    email,
+    team,
+    hardestPart,
+    hiresCount,
+    timeline
+  } = req.body;
 
   if (!submissionId || !date || !time) {
     return res.status(400).json({ success: false, message: 'Missing booking details' });
   }
 
+  // Set default fallback values using request body
+  let submissionData = {
+    id: submissionId,
+    name: name || '',
+    position: position || '',
+    company: company || '',
+    email: email || '',
+    team: team || '',
+    hardestPart: hardestPart || '',
+    hiresCount: hiresCount || '',
+    timeline: timeline || '',
+    bookedDate: date,
+    bookedTime: time
+  };
+
   try {
-    if (!fs.existsSync(CSV_PATH)) {
-      return res.status(404).json({ success: false, message: 'No submissions found' });
-    }
+    // Skip local CSV operations on Vercel
+    if (!IS_VERCEL) {
+      if (fs.existsSync(CSV_PATH)) {
+        // Read and update the CSV row matching submissionId
+        const csvContent = fs.readFileSync(CSV_PATH, 'utf8');
+        const lines = csvContent.split('\n');
+        let updated = false;
 
-    // Read and update the CSV row matching submissionId
-    const csvContent = fs.readFileSync(CSV_PATH, 'utf8');
-    const lines = csvContent.split('\n');
-    let updated = false;
-    let submissionData = null;
+        for (let i = 0; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          const columns = parseCsvLine(lines[i]);
+          const idVal = columns[0].replace(/^"|"$/g, '');
+          if (idVal === submissionId) {
+            // Update Booked Date (index 10) and Booked Time (index 11)
+            columns[10] = date;
+            columns[11] = time;
+            lines[i] = columns.map(escapeCsv).join(',');
+            updated = true;
 
-    for (let i = 0; i < lines.length; i++) {
-      if (!lines[i].trim()) continue;
-      const columns = parseCsvLine(lines[i]);
-      // Remove double quotes wrapping submissionId
-      const idVal = columns[0].replace(/^"|"$/g, '');
-      if (idVal === submissionId) {
-        // Update Booked Date (index 10) and Booked Time (index 11)
-        columns[10] = date;
-        columns[11] = time;
-        lines[i] = columns.map(escapeCsv).join(',');
-        updated = true;
+            // Gather values from CSV
+            submissionData = {
+              id: idVal,
+              timestamp: columns[1].replace(/^"|"$/g, ''),
+              name: columns[2].replace(/^"|"$/g, '') || name || '',
+              position: columns[3].replace(/^"|"$/g, '') || position || '',
+              company: columns[4].replace(/^"|"$/g, '') || company || '',
+              email: columns[5].replace(/^"|"$/g, '') || email || '',
+              team: columns[6].replace(/^"|"$/g, '') || team || '',
+              hardestPart: columns[7].replace(/^"|"$/g, '') || hardestPart || '',
+              hiresCount: columns[8].replace(/^"|"$/g, '') || hiresCount || '',
+              timeline: columns[9].replace(/^"|"$/g, '') || timeline || '',
+              bookedDate: date,
+              bookedTime: time
+            };
+            break;
+          }
+        }
 
-        // Gather clean values for sending email
-        submissionData = {
-          id: idVal,
-          timestamp: columns[1].replace(/^"|"$/g, ''),
-          name: columns[2].replace(/^"|"$/g, ''),
-          position: columns[3].replace(/^"|"$/g, ''),
-          company: columns[4].replace(/^"|"$/g, ''),
-          email: columns[5].replace(/^"|"$/g, ''),
-          team: columns[6].replace(/^"|"$/g, ''),
-          hardestPart: columns[7].replace(/^"|"$/g, ''),
-          hiresCount: columns[8].replace(/^"|"$/g, ''),
-          timeline: columns[9].replace(/^"|"$/g, ''),
-          bookedDate: date,
-          bookedTime: time
-        };
-        break;
+        if (updated) {
+          // Write updated lines back to file
+          fs.writeFileSync(CSV_PATH, lines.join('\n'), 'utf8');
+        }
       }
     }
 
-    if (!updated || !submissionData) {
-      return res.status(404).json({ success: false, message: 'Submission ID not found' });
+    // If Google Sheets webhook is configured, update the booking slot
+    const webhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
+    if (webhookUrl) {
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'book',
+          submissionId,
+          date,
+          time
+        })
+      }).catch(err => console.error('Failed to update Google Sheets webhook:', err));
     }
-
-    // Write updated lines back to file
-    fs.writeFileSync(CSV_PATH, lines.join('\n'), 'utf8');
 
     // Load internal email notification list
     let recipients = ['hsfahadnaseer@gmail.com', 'hr@tethrhq.com', 'saad@tethrhq.com'];
@@ -295,7 +362,11 @@ function logLocalNotification(subject, text) {
   }
 }
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`tethr landing page backend running on http://localhost:${PORT}`);
-});
+// Start Server (only if not running in a serverless environment like Vercel)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`tethr landing page backend running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

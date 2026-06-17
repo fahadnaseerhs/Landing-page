@@ -426,7 +426,15 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({
           submissionId: currentSubmissionId,
           date: dateStr,
-          time: selectedTime
+          time: selectedTime,
+          name: document.getElementById('input-name').value.trim(),
+          position: document.getElementById('input-position').value.trim(),
+          company: document.getElementById('input-company').value.trim(),
+          email: document.getElementById('input-email').value.trim(),
+          team: document.getElementById('select-team').value,
+          hardestPart: document.getElementById('select-hardest-part').value,
+          hiresCount: document.getElementById('select-hires-count').value,
+          timeline: document.getElementById('select-timeline').value
         })
       });
       const data = await response.json();
