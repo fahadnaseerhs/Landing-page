@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tethr | Technical Employer of Record</title>
+  <meta name="description" content="Start building your MENA technical team. Start with one role, no contract required until you are ready.">
+  <link rel="icon" type="image/png" href="logo/logo_black.png">
+  <!-- Load Inter font from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- Link custom vanilla CSS stylesheet -->
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- Sticky Header Bar -->
+  <header class="top-header">
+    <div class="header-container">
+      <img src="logo/logo_white.png" alt="tethr logo" class="brand-logo" id="header-logo">
+    </div>
+  </header>
+
+  <main class="page-container">
+
+    <!-- STATE 1: Landing Page Hero + Form -->
+    <section id="state-form" class="state-view active">
+      <div class="hero-split-layout">
+        <!-- Hero Information (Left) -->
+        <div class="hero-content">
+          <h1 class="hero-title">Here’s exactly how this works.</h1>
+          <p class="hero-subtitle">Start with one role. No contract required until you’re ready.</p>
+          <p class="hero-support">Tell us what you're hiring for, and we'll show you exactly how we work. Fill in a few quick details below, pick a time that works for you, and we'll walk you through finding the right engineer — vetted, employed, and ready to work with your team. No contract, no commitment, just a real conversation about what you need</p>
+        </div>
+
+        <!-- Qualifying Form Card (Right) -->
+        <div class="form-card">
+          <h2 class="form-title">Let's talk.</h2>
+          <p class="form-subtext">Takes about a minute. Then pick a time that works for you.</p>
+
+          <form id="qualifying-form" novalidate>
+            <!-- Field 1: Name -->
+            <div class="form-group">
+              <label for="input-name">Name</label>
+              <input type="text" id="input-name" name="name" placeholder="First and last name" required>
+              <div class="error-message" id="error-name"></div>
+            </div>
+
+            <!-- Field 2: Position -->
+            <div class="form-group">
+              <label for="input-position">Position / Title</label>
+              <input type="text" id="input-position" name="position" placeholder="e.g. Senior Backend Engineer" required>
+              <div class="error-message" id="error-position"></div>
+            </div>
+
+            <!-- Field 3: Company Name -->
+            <div class="form-group">
+              <label for="input-company">Company Name</label>
+              <input type="text" id="input-company" name="company" placeholder="e.g. TechCorp LLC" required>
+              <div class="error-message" id="error-company"></div>
+            </div>
+
+            <!-- Field 4: Email -->
+            <div class="form-group">
+              <label for="input-email">Email Address</label>
+              <input type="email" id="input-email" name="email" placeholder="you@company.com" required>
+              <div class="error-message" id="error-email"></div>
+            </div>
+
+            <!-- Field 5: Team -->
+            <div class="form-group">
+              <label for="select-team">What team are you looking to build or grow?</label>
+              <div class="select-wrapper">
+                <select id="select-team" name="team" required>
+                  <option value="" disabled selected hidden>Select a team...</option>
+                  <option value="Engineering / Tech">Engineering / Tech</option>
+                  <option value="Product">Product</option>
+                  <option value="Data">Data</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="error-message" id="error-team"></div>
+            </div>
+
+            <!-- Field 6: Hardest Part -->
+            <div class="form-group">
+              <label for="select-hardest-part">What's the hardest part of hiring right now?</label>
+              <div class="select-wrapper">
+                <select id="select-hardest-part" name="hardestPart" required>
+                  <option value="" disabled selected hidden>Select a challenge...</option>
+                  <option value="Cost is too high">Cost is too high</option>
+                  <option value="Takes too long to find good people">Takes too long to find good people</option>
+                  <option value="Compliance / legal complexity">Compliance / legal complexity</option>
+                  <option value="Replacing people who leave">Replacing people who leave</option>
+                  <option value="Haven't started hiring yet, just exploring">Haven't started hiring yet, just exploring</option>
+                </select>
+              </div>
+              <div class="error-message" id="error-hardestPart"></div>
+            </div>
+
+            <!-- Field 7: Hires Count -->
+            <div class="form-group">
+              <label for="select-hires-count">How many people are you looking to hire?</label>
+              <div class="select-wrapper">
+                <select id="select-hires-count" name="hiresCount" required>
+                  <option value="" disabled selected hidden>Select hires count...</option>
+                  <option value="1">1</option>
+                  <option value="2-5">2-5</option>
+                  <option value="6-10">6-10</option>
+                  <option value="10+">10+</option>
+                </select>
+              </div>
+              <div class="error-message" id="error-hiresCount"></div>
+            </div>
+
+            <!-- Field 8: Timeline -->
+            <div class="form-group">
+              <label for="select-timeline">How soon are you looking to hire?</label>
+              <div class="select-wrapper">
+                <select id="select-timeline" name="timeline" required>
+                  <option value="" disabled selected hidden>Select timeline...</option>
+                  <option value="ASAP">ASAP</option>
+                  <option value="Within a month">Within a month</option>
+                  <option value="Just exploring">Just exploring</option>
+                </select>
+              </div>
+              <div class="error-message" id="error-timeline"></div>
+            </div>
+
+            <button type="submit" id="btn-submit-form" class="primary-btn">
+              <span class="btn-text">Book a call</span>
+              <span class="btn-spinner hidden"></span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATE 2: Custom Interactive Calendar -->
+    <section id="state-calendar" class="state-view">
+      <div class="calendar-layout">
+        <div class="calendar-header-block">
+          <h2 class="calendar-title">Pick a time that works for you.</h2>
+          <p class="calendar-subtext">30 minutes. We'll talk through what you need.</p>
+        </div>
+
+        <div class="calendar-booking-card">
+          <div class="booking-grid">
+            
+            <!-- Left Side: Calendar Day Selector -->
+            <div class="calendar-picker">
+              <div class="calendar-nav">
+                <button type="button" id="prev-month-btn" class="nav-arrow">&larr;</button>
+                <span id="calendar-month-year" class="month-label">June 2026</span>
+                <button type="button" id="next-month-btn" class="nav-arrow">&rarr;</button>
+              </div>
+              
+              <div class="calendar-weeks-header">
+                <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
+              </div>
+              
+              <div id="calendar-days-grid" class="calendar-days-grid">
+                <!-- Days injected programmatically -->
+              </div>
+            </div>
+
+            <!-- Right Side: Time Slots Selector -->
+            <div class="slots-picker">
+              <h4 class="slots-header" id="selected-date-label">Select a date to view slots</h4>
+              <div id="slots-container" class="slots-list">
+                <!-- Slots injected programmatically -->
+              </div>
+            </div>
+
+          </div>
+
+          <div class="booking-actions">
+            <button type="button" id="btn-confirm-booking" class="primary-btn" disabled>
+              <span class="btn-text">Confirm Booking</span>
+              <span class="btn-spinner hidden"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATE 3: Branded Thank You Confirmation -->
+    <section id="state-thankyou" class="state-view">
+      <div class="thankyou-layout">
+        <div class="thankyou-card">
+          <div class="logo-centered-wrapper">
+            <img src="logo/logo_black.png" alt="tethr logo" class="brand-logo-large">
+          </div>
+          
+          <div class="success-badge">
+            <svg viewBox="0 0 24 24" class="check-icon">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+          </div>
+          
+          <h1 class="thankyou-title">You're booked.</h1>
+          <p class="thankyou-subtext">We'll see you then. In the meantime, feel free to reply to the confirmation email with anything you'd like us to know.</p>
+          
+          <div class="thankyou-links">
+            <a href="https://tethrhq.com" target="_blank" class="quiet-link">← back to tethrhq.com</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Load JavaScript file -->
+  <script src="index.js"></script>
+</body>
+</html>
